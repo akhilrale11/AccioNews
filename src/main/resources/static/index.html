@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AccioNews - Live News Explorer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary: #38bdf8;
+            --primary-hover: #0ea5e9;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #818cf8;
+            --danger: #f87171;
+            --success: #34d399;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top, #1e293b, #0f172a 70%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        .api-info-box {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            color: #bae6fd;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .api-info-box a {
+            color: #38bdf8;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        .search-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(16px);
+            border-radius: 16px;
+            padding: 1.75rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr auto;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        input, select {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+        }
+
+        button {
+            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            height: 44px;
+        }
+
+        button:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-bar {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            color: #fca5a5;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .news-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .news-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.4);
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        .news-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background-color: #1e293b;
+        }
+
+        .news-body {
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .news-author {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .news-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 0.75rem;
+            color: #f1f5f9;
+        }
+
+        .news-desc {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            flex-grow: 1;
+        }
+
+        .news-link {
+            align-self: flex-start;
+            font-size: 0.85rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .news-link:hover {
+            text-decoration: underline;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 18px;
+            height: 18px;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">⚡ AccioNews</div>
+            <p class="subtitle">Live Country Headlines powered by Spring Boot & NewsAPI</p>
+        </header>
+
+        <div class="api-info-box">
+            <span>🔑 Need a free API key? Get one instantly from <strong>NewsAPI.org</strong>.</span>
+            <a href="https://newsapi.org/register" target="_blank" rel="noopener">Register on NewsAPI.org &rarr;</a>
+        </div>
+
+        <div class="search-card">
+            <form id="newsForm" class="form-grid">
+                <div class="form-group">
+                    <label for="countrySelect">Select Country</label>
+                    <select id="countrySelect" required>
+                        <option value="in" selected>🇮🇳 India (in)</option>
+                        <option value="us">🇺🇸 United States (us)</option>
+                        <option value="gb">🇬🇧 United Kingdom (gb)</option>
+                        <option value="ca">🇨🇦 Canada (ca)</option>
+                        <option value="au">🇦🇺 Australia (au)</option>
+                        <option value="de">🇩🇪 Germany (de)</option>
+                        <option value="jp">🇯🇵 Japan (jp)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="apiKeyInput">NewsAPI Key</label>
+                    <input type="text" id="apiKeyInput" placeholder="Paste your 32-character NewsAPI Key" required>
+                </div>
+
+                <button type="submit" id="submitBtn">
+                    <div class="spinner" id="btnSpinner"></div>
+                    <span id="btnText">Fetch News</span>
+                </button>
+            </form>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <div id="statusBar" class="status-bar" style="display: none;">
+            <span id="totalResultsText">Showing headlines</span>
+            <span id="endpointInfo" style="font-family: monospace; font-size: 0.8rem;"></span>
+        </div>
+
+        <div id="newsGrid" class="news-grid">
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                Enter your NewsAPI key above and click <strong>Fetch News</strong> to see live top headlines.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('newsForm');
+        const countrySelect = document.getElementById('countrySelect');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const btnText = document.getElementById('btnText');
+        const errorMessage = document.getElementById('errorMessage');
+        const newsGrid = document.getElementById('newsGrid');
+        const statusBar = document.getElementById('statusBar');
+        const totalResultsText = document.getElementById('totalResultsText');
+        const endpointInfo = document.getElementById('endpointInfo');
+
+        // Load saved API key from localStorage if present
+        const savedKey = localStorage.getItem('newsApiKey');
+        if (savedKey) {
+            apiKeyInput.value = savedKey;
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const country = countrySelect.value.trim();
+            const apiKey = apiKeyInput.value.trim();
+
+            if (!country || !apiKey) {
+                showError('Please provide both a country and a valid API key.');
+                return;
+            }
+
+            // Save key in localStorage for convenience
+            localStorage.setItem('newsApiKey', apiKey);
+
+            setLoading(true);
+            hideError();
+
+            const endpointUrl = `/api/v1/news/country?country=${encodeURIComponent(country)}&api-key=${encodeURIComponent(apiKey)}`;
+
+            try {
+                const response = await fetch(endpointUrl);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    let errMsg = data.message || `Request failed with status ${response.status}`;
+                    showError(errMsg);
+                    newsGrid.innerHTML = '';
+                    statusBar.style.display = 'none';
+                    return;
+                }
+
+                renderArticles(data, country);
+            } catch (err) {
+                showError('Network error or server connection failed: ' + err.message);
+                statusBar.style.display = 'none';
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        function setLoading(isLoading) {
+            submitBtn.disabled = isLoading;
+            btnSpinner.style.display = isLoading ? 'block' : 'none';
+            btnText.textContent = isLoading ? 'Fetching...' : 'Fetch News';
+        }
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.style.display = 'block';
+        }
+
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        function renderArticles(data, country) {
+            const articles = data.articles || [];
+            statusBar.style.display = 'flex';
+            totalResultsText.textContent = `Found ${data.totalResults || articles.length} articles for "${country.toUpperCase()}"`;
+            endpointInfo.textContent = `GET /api/v1/news/country`;
+
+            if (articles.length === 0) {
+                newsGrid.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;">No articles found for this country.</div>`;
+                return;
+            }
+
+            newsGrid.innerHTML = articles.map(art => `
+                <div class="news-card">
+                    ${art.urlToImage ? `<img class="news-image" src="${escapeHtml(art.urlToImage)}" alt="News Image" onerror="this.style.display='none'">` : ''}
+                    <div class="news-body">
+                        <div class="news-author">${escapeHtml(art.author || 'Unknown Source')}</div>
+                        <h3 class="news-title">${escapeHtml(art.title || 'Untitled')}</h3>
+                        ${art.description ? `<p class="news-desc">${escapeHtml(art.description)}</p>` : ''}
+                        ${art.url ? `<a href="${escapeHtml(art.url)}" target="_blank" rel="noopener" class="news-link">Read full story &rarr;</a>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
